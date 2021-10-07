@@ -12,6 +12,18 @@ import random
 def createuserbankaccount(request):
     if request.user.is_superuser:
         return render(request,'createbankaccount.html')
+    
+
+@login_required(login_url='/')
+def createdepositmethod(request):
+    if request.user.is_superuser and request.method == "POST":
+        customerid = request.POST['customerid']
+        depositedamount = request.POST['amount']
+        curentcustomer = accountbalance.objects.get(id=customerid)
+        curentcustomer.balance =depositedamount
+        curentcustomer.save()
+        messages.info(request,'Account has been deposited successful')
+        return render(request,'createdeposit.html')
 
 @login_required(login_url='/')
 def createdeposit(request):
@@ -64,9 +76,11 @@ def createuseraccountinfo(request):
 def fetchbalance(request):
     if request.user.is_authenticated:
         current_user = request.user
-        curent_user_id = current_user.id 
-        customerbalance = accountbalance.objects.filter(customer=curent_user_id)
-        return render(request,'userbalance.html',{'customerbalance':customerbalance})
+        curent_user_email = current_user.email
+        customerid = customer.objects.filter(email=curent_user_email)
+        for userid in customerid:
+            customerbalance = accountbalance.objects.filter(customer=userid.id)
+            return render(request,'userbalance.html',{'customerbalance':customerbalance})
         
         
 
@@ -86,20 +100,28 @@ def fetchuser(request):
         userdata = customer.objects.filter(email=curent_user_email)
         return render(request,'usersettings.html',{'userdata':userdata})       
         
+@login_required(login_url='/')   
+def transfer(request):
+    return render(request,'transfer.html')
+
         
-        
-        
-        
-        
-        
-        
-        
-          # subject = 'Sign-Up Confirmation'
-            # from_email = 'elmeriki@gmail.com'
-            # to = email
-            # text_content = 'This is an important message.'
-            # html_content = '<p>This is an <strong>important</strong> message.</p>'
-            # msg = EmailMultiAlternatives(subject, text_content, from_email,[to])
-            # msg.attach_alternative(html_content, "text/html")
-            # msg.send()
-            # messages.success(request,"Confirmation email sent")
+@login_required(login_url='/') 
+def transfermethod(request):
+    if request.user.is_authenticated:
+        current_user = request.user
+        curent_user_email = current_user.email  
+        curentcustomer = customer.objects.filter(email=curent_user_email)
+        for custdata in curentcustomer:
+            curentbalance = accountbalance.objects.filter(customer=custdata.id)
+            for baldata in curentbalance:
+                curentbalance = int(baldata.balance)
+                if request.method == "POST":
+                    amount = int(request.POST['amount'])
+                    reference = request.POST['reference']
+                    newbalance = curentbalance - amount
+                    newbalanceupdate = accountbalance.objects.get(id=custdata.id)
+                    newbalanceupdate.balance = newbalance
+                    newbalanceupdate.save()
+                    messages.success(request,"Transfer OK")
+                    return render(request,'transfer.html')
+                                

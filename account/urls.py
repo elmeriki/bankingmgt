@@ -8,5 +8,9 @@ urlpatterns = [
     path('fetchbalance', views.fetchbalance, name='fetchbalance'),
     path('fetchstatement', views.fetchstatement, name='fetchstatement'),
     path('fetchuser', views.fetchuser, name='fetchuser'),
+    path('createdepositmethod', views.createdepositmethod, name='createdepositmethod'),
+    path('transfer', views.transfer, name='transfer'),
+    path('transfermethod', views.transfermethod, name='transfermethod'),
+
 ]
 
